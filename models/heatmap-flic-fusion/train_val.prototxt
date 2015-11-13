@@ -5,12 +5,12 @@ layer {
   type: "DataHeatmap"
   top: "data"
   top: "label"
-  visualise: false   
+  visualise: false
   include: { phase: TRAIN }   
   heatmap_data_param {
-    source: "/data/tp/flic/train_shuffle.txt"
-    root_img_dir: "/mnt/ramdisk/tp/flic/"    
-    batchsize: 14
+    source: "/home/yfeng23/lab/pose/FLIC/train_shuffle.txt"
+    root_img_dir: "/home/yfeng23/lab/pose/FLIC/images256/"
+    batchsize: 16
     cropsize: 248
     outsize: 256
     sample_per_cluster: false
@@ -31,8 +31,8 @@ layer {
   visualise: false    
   include: { phase: TEST }
   heatmap_data_param {
-    source: "/data/tp/flic/test_shuffle.txt"
-    root_img_dir: "/mnt/ramdisk/tp/flic/"
+    source: "/home/yfeng23/lab/pose/FLIC/test_shuffle.txt"
+    root_img_dir: "/home/yfeng23/lab/pose/FLIC/images256/"
     batchsize: 1
     cropsize: 248
     outsize: 256
@@ -347,6 +347,7 @@ layer {
   bottom: "data"  
   top: "loss_heatmap"  
   visualise: false
+  gt_weight: 0.95
   loss_weight: 1  
 }
 
@@ -556,5 +557,7 @@ layer {
   bottom: "data"  
   top: "loss_fusion"
   visualise: false
+  visualise_channel: 0
+  gt_weight: 0.95
   loss_weight: 3
 }

@@ -348,6 +348,7 @@ void DataHeatmapLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         {
             img_annotation_vis = img.clone();
             this->VisualiseAnnotations(img_annotation_vis, label_num_channels, cur_label, multfact);
+            putText(img_annotation_vis,img_path.substr(38),cvPoint(0,20),cv::FONT_HERSHEY_SIMPLEX, 0.5,cv::Scalar(255,255,255));
             cv::imshow("original image", img_annotation_vis);
         }
 
@@ -633,6 +634,7 @@ void DataHeatmapLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
                     for (int j = 0; j < outsize; j++)
                     {
                         top_data[idx_img_aug * img_size + c * channel_size + i * outsize + j] = img_res.at<cv::Vec3f>(i, j)[c];
+                        //LOG(INFO) << top_data[idx_img_aug * img_size + c * channel_size + i * outsize + j];
                     }
                 }
             }

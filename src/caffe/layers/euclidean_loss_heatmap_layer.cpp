@@ -48,9 +48,11 @@ void EuclideanLossHeatmapLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
 
     int visualise_channel = this->layer_param_.visualise_channel();
     bool visualise = this->layer_param_.visualise();
+    float gt_weight = this->layer_param_.gt_weight();
 
     const Dtype* bottom_pred = bottom[0]->cpu_data(); // predictions for all images
     const Dtype* gt_pred = bottom[1]->cpu_data();    // GT predictions
+    Dtype* diff = diff_.mutable_cpu_data();
     const int num_images = bottom[1]->num();
     const int label_height = bottom[1]->height();
     const int label_width = bottom[1]->width();
@@ -85,15 +87,16 @@ void EuclideanLossHeatmapLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
                 for (int j = 0; j < label_width; j++)
                 {
                     int image_idx = idx_img * label_img_size + idx_ch * label_channel_size + i * label_height + j;
-                    float diff = (float)bottom_pred[image_idx] - (float)gt_pred[image_idx];
-                    loss += diff * diff;
+                    diff[image_idx] = (float)bottom_pred[image_idx] - (float)gt_pred[image_idx];
+                    loss += diff[image_idx] * diff[image_idx] * ((float)gt_pred[image_idx] - gt_weight);
+                    diff[image_idx] *= (float)gt_pred[image_idx] - gt_weight;
 
                     // Store visualisation for given channel
                     if (idx_ch == visualise_channel && visualise)
                     {
                         bottom_img.at<float>((int)j, (int)i) = (float) bottom_pred[image_idx];
                         gt_img.at<float>((int)j, (int)i) = (float) gt_pred[image_idx];
-                        diff_img.at<float>((int)j, (int)i) = (float) diff * diff;
+                        diff_img.at<float>((int)j, (int)i) = (float) diff[image_idx] * diff[image_idx];
                     }
 
                 }
@@ -114,7 +117,7 @@ void EuclideanLossHeatmapLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
     }
 
     DLOG(INFO) << "total loss: " << loss;
-    loss /= (num_images * num_channels * label_channel_size);
+    loss /= num_images;
     DLOG(INFO) << "total normalised loss: " << loss;
 
     top[0]->mutable_cpu_data()[0] = loss;
@@ -200,7 +203,9 @@ void EuclideanLossHeatmapLayer<Dtype>::VisualiseBottom(const vector<Blob<Dtype>*
             {
                 int image_idx = idx_img * visualisation_bottom->width() * visualisation_bottom->height() * visualisation_bottom->channels() + idx_ch * visualisation_bottom->width() * visualisation_bottom->height() + i * visualisation_bottom->height() + j;
                 if (isRGB && idx_ch < 3) {
-                    visualisation_bottom_img.at<cv::Vec3f>((int)j, (int)i)[idx_ch] = 4 * (float) visualisation_bottom->cpu_data()[image_idx] / 255;
+                    //visualisation_bottom_img.at<cv::Vec3f>((int)j, (int)i)[idx_ch] = 4 * (float) visualisation_bottom->cpu_data()[image_idx] / 255;
+                	visualisation_bottom_img.at<cv::Vec3f>((int)j, (int)i)[idx_ch] = (float) visualisation_bottom->cpu_data()[image_idx] / 255;
+                    //LOG(INFO) << visualisation_bottom->cpu_data()[image_idx];
                 } else if (idx_ch == visualise_channel)
                 {
                     visualisation_bottom_img.at<float>((int)j, (int)i) = (float) visualisation_bottom->cpu_data()[image_idx];
@@ -221,7 +226,7 @@ void EuclideanLossHeatmapLayer<Dtype>::VisualiseBottom(const vector<Blob<Dtype>*
     cv::circle(visualisation_bottom_img, maxLocBottom, 3, cv::Scalar(0, 0, 255), -1);
 
     // Show visualisation
-    cv::imshow("visualisation_bottom", visualisation_bottom_img - 1);
+    cv::imshow("visualisation_bottom", visualisation_bottom_img);
 }
 
 
@@ -240,16 +245,16 @@ void EuclideanLossHeatmapLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& 
         const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom)
 {
     const int count = bottom[0]->count();
-    const int channels = bottom[0]->channels();
+    //const int channels = bottom[0]->channels();
 
-    caffe_sub(count, bottom[0]->cpu_data(), bottom[1]->cpu_data(), diff_.mutable_cpu_data());
+    //caffe_sub(count, bottom[0]->cpu_data(), bottom[1]->cpu_data(), diff_.mutable_cpu_data());
 
     // strictly speaking, should be normalising by (2 * channels) due to 1/2 multiplier in front of the loss
-    Dtype loss = caffe_cpu_dot(count, diff_.cpu_data(), diff_.cpu_data()) / Dtype(channels);
+    //Dtype loss = caffe_cpu_dot(count, diff_.cpu_data(), diff_.cpu_data()) / Dtype(channels);
 
     // copy the gradient
     memcpy(bottom[0]->mutable_cpu_diff(), diff_.cpu_data(), sizeof(Dtype) * count);
-    memcpy(bottom[1]->mutable_cpu_diff(), diff_.cpu_data(), sizeof(Dtype) * count);
+    //memcpy(bottom[1]->mutable_cpu_diff(), diff_.cpu_data(), sizeof(Dtype) * count);
 
 }
 

@@ -61,7 +61,7 @@ protected:
 
   Blob<Dtype> diff_;
 
-  Blob<Dtype> img_pred_;
+  Blob<Dtype> weight_;
 
   // validation mode flag
   bool val_mode_;

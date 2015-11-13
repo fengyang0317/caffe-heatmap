@@ -345,6 +345,7 @@ message LayerParameter {
   // Options to allow visualisation
   optional bool visualise = 200 [ default = false ];
   optional uint32 visualise_channel = 201 [ default = 0 ];  
+  optional float gt_weight = 202 [default = 0.9 ];
 
 
   // Layer type-specific parameters.
