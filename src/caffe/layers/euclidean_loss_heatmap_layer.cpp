@@ -76,6 +76,11 @@ void EuclideanLossHeatmapLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
         diff_img = cv::Mat::zeros(label_height, label_width, CV_32FC1);
     }
 
+    //FILE *f1 = fopen("a.txt", "w");
+    //FILE *f2 = fopen("b.txt", "w");
+    //fclose(f1);
+    //fclose(f2);
+
     // Loop over images
     for (int idx_img = 0; idx_img < num_images; idx_img++)
     {
@@ -87,6 +92,8 @@ void EuclideanLossHeatmapLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
                 for (int j = 0; j < label_width; j++)
                 {
                     int image_idx = idx_img * label_img_size + idx_ch * label_channel_size + i * label_height + j;
+                    //fprintf(f1, "%f ", bottom_pred[image_idx]);
+                    //fprintf(f2, "%f ", gt_pred[image_idx]);
                     diff[image_idx] = (float)bottom_pred[image_idx] - (float)gt_pred[image_idx];
                     loss += diff[image_idx] * diff[image_idx] * ((float)gt_pred[image_idx] - gt_weight);
                     diff[image_idx] *= (float)gt_pred[image_idx] - gt_weight;
@@ -102,6 +109,8 @@ void EuclideanLossHeatmapLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
                 }
             }
         }
+
+
         // Plot visualisation
         if (visualise)
         {
